@@ -1,0 +1,1675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Hassan Cattle Feed Dashboard - Karnataka</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Google Fonts for modern look -->
+  <link href="https://fonts.googleapis.com/css?family=Inter:400,600,700&display=swap" rel="stylesheet">
+  <!-- Chart.js for charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* Reset and base styles */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      background: #f6f8fa;
+      color: #222;
+      min-height: 100vh;
+      width: 100vw;
+      overflow-x: hidden;
+    }
+    a { color: inherit; text-decoration: none; }
+    ul { list-style: none; }
+    /* Header/Nav */
+    .navbar {
+      background: #1a2636;
+      color: #fff;
+      padding: 0 32px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .navbar .logo {
+      font-size: 1.7rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+    }
+    .navbar .logo i {
+      font-size: 2rem;
+      margin-right: 10px;
+      color: #4fd1c5;
+    }
+    .navbar nav {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+    .navbar nav a {
+      font-size: 1.1rem;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 6px;
+      transition: background 0.2s;
+      color: #fff;
+    }
+    .navbar nav a.active, .navbar nav a:hover {
+      background: #24344d;
+      color: #4fd1c5;
+    }
+    .navbar .user {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1rem;
+    }
+    .navbar .user img {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 2px solid #4fd1c5;
+      object-fit: cover;
+    }
+    /* Main Layout */
+    .container {
+      max-width: 1440px;
+      margin: 32px auto;
+      padding: 0 24px;
+    }
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: auto auto;
+      gap: 32px;
+      margin-bottom: 32px;
+    }
+    @media (max-width: 1100px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    /* Card Styles */
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      padding: 32px 28px 24px 28px;
+      min-height: 320px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      transition: box-shadow 0.2s;
+    }
+    .card:hover {
+      box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+    }
+    .card h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 18px;
+      color: #1a2636;
+    }
+    .card .metrics {
+      display: flex;
+      gap: 32px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .card .metric {
+      display: flex;
+      flex-direction: column;
+      font-size: 1.1rem;
+      min-width: 120px;
+    }
+    .card .metric .label {
+      color: #7b8794;
+      font-size: 0.98rem;
+      margin-bottom: 2px;
+    }
+    .card .metric .value {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #24344d;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .card .metric .trend-up {
+      color: #38b2ac;
+      font-size: 1.1rem;
+    }
+    .card .metric .trend-down {
+      color: #e53e3e;
+      font-size: 1.1rem;
+    }
+    /* Chart containers */
+    .chart-container {
+      width: 100%;
+      height: 160px;
+      margin-top: 12px;
+      margin-bottom: 8px;
+      position: relative;
+    }
+    /* Inventory Pie */
+    .inventory-breakdown {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin-top: 12px;
+    }
+    .inventory-legend {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 1rem;
+    }
+    .inventory-legend span {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .legend-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    /* Delivery Map */
+    .delivery-map {
+      width: 100%;
+      height: 160px;
+      background: url('https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Equirectangular_projection_SW.jpg/640px-Equirectangular_projection_SW.jpg') center/cover no-repeat;
+      border-radius: 10px;
+      margin-top: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+    .delivery-marker {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      background: #4fd1c5;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+    .delivery-marker:hover {
+      transform: scale(1.2);
+      z-index: 2;
+    }
+    .delivery-tooltip {
+      position: absolute;
+      background: #fff;
+      color: #222;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s;
+      z-index: 10;
+    }
+    /* Tabs for pages */
+    .page {
+      display: none;
+      animation: fadeIn 0.4s;
+    }
+    .page.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px);}
+      to { opacity: 1; transform: translateY(0);}
+    }
+    /* Table Styles */
+    .table-container {
+      margin-top: 18px;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      font-size: 1rem;
+    }
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    th {
+      background: #f6f8fa;
+      font-weight: 600;
+      color: #24344d;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    /* Button Styles */
+    .btn {
+      background: #4fd1c5;
+      color: #fff;
+      border: none;
+      padding: 10px 22px;
+      border-radius: 6px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.18s;
+      margin-top: 8px;
+      margin-bottom: 8px;
+    }
+    .btn:hover {
+      background: #38b2ac;
+    }
+    /* Responsive */
+    @media (max-width: 700px) {
+      .container { padding: 0 4px; }
+      .card { padding: 18px 8px 12px 8px; }
+      .navbar { flex-direction: column; height: auto; padding: 0 8px;}
+      .navbar nav { gap: 10px; }
+      .dashboard-grid { gap: 12px; }
+      .card .metrics { gap: 12px; }
+    }
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 8px; background: #f6f8fa;}
+    ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 8px;}
+    /* Modal Styles */
+    .modal-bg {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      display: none;
+    }
+    .modal-bg.active { display: flex; }
+    .modal {
+      background: #fff;
+      border-radius: 12px;
+      padding: 32px 24px;
+      min-width: 320px;
+      max-width: 90vw;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.18);
+      position: relative;
+      animation: fadeIn 0.3s;
+    }
+    .modal h3 {
+      font-size: 1.3rem;
+      margin-bottom: 18px;
+      color: #24344d;
+    }
+    .modal .close-btn {
+      position: absolute;
+      top: 12px; right: 18px;
+      font-size: 1.5rem;
+      color: #7b8794;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+    .modal label { display: block; margin-bottom: 6px; font-weight: 600;}
+    .modal input, .modal select {
+      width: 100%;
+      padding: 8px 10px;
+      margin-bottom: 14px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+    .modal .btn { width: 100%; }
+    /* Notification */
+    .notification {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      background: #38b2ac;
+      color: #fff;
+      padding: 16px 32px;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+      z-index: 3000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .notification.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    /* Custom Scrollbar for Modal */
+    .modal::-webkit-scrollbar { width: 6px; background: #f6f8fa;}
+    .modal::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 8px;}
+    /* Add a little more for region selector and new metrics */
+    .region-selector {
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .region-selector label {
+      font-weight: 600;
+      color: #24344d;
+    }
+    .extra-metrics {
+      display: flex;
+      gap: 32px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .extra-metric {
+      display: flex;
+      flex-direction: column;
+      font-size: 1.1rem;
+      min-width: 120px;
+    }
+    .extra-metric .label {
+      color: #7b8794;
+      font-size: 0.98rem;
+      margin-bottom: 2px;
+    }
+    .extra-metric .value {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #24344d;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <div class="navbar">
+    <div class="logo">
+      <i>🐄</i>
+      Hassan CattleFeedPro
+    </div>
+    <nav>
+      <a href="#" class="nav-link active" data-page="dashboard">Dashboard</a>
+      <a href="#" class="nav-link" data-page="finance">Finance</a>
+      <a href="#" class="nav-link" data-page="production">Production</a>
+      <a href="#" class="nav-link" data-page="logistics">Logistics</a>
+      <a href="#" class="nav-link" data-page="sales">Sales</a>
+      <a href="#" class="nav-link" data-page="inventory">Inventory</a>
+      <a href="#" class="nav-link" data-page="delivery">Delivery</a>
+      <a href="#" class="nav-link" data-page="settings">Settings</a>
+    </nav>
+    <div class="user">
+      <span>Hi, Ramesh</span>
+      <img src="https://randomuser.me/api/portraits/men/75.jpg" alt="User">
+    </div>
+  </div>
+  <!-- Main Container -->
+  <div class="container">
+    <!-- Region Selector -->
+    <div class="region-selector">
+      <label for="regionSelect">Region:</label>
+      <select id="regionSelect">
+        <option value="all">All Hassan</option>
+        <option value="arsikere">Arsikere</option>
+        <option value="alur">Alur</option>
+        <option value="belur">Belur</option>
+        <option value="channarayapatna">Channarayapatna</option>
+        <option value="holenarasipura">Holenarasipura</option>
+        <option value="sakleshpur">Sakleshpur</option>
+        <option value="hassan">Hassan City</option>
+      </select>
+    </div>
+    <!-- Dashboard Page -->
+    <div class="page active" id="dashboard">
+      <div class="dashboard-grid">
+        <!-- Finance Card -->
+        <div class="card" id="finance-card">
+          <h2>Finance</h2>
+          <div class="metrics">
+            <div class="metric">
+              <span class="label">Revenue</span>
+              <span class="value" id="dashboard-revenue">₹2.4Cr <span class="trend-up">▲</span></span>
+            </div>
+            <div class="metric">
+              <span class="label">Expenses</span>
+              <span class="value" id="dashboard-expenses">₹1.6Cr</span>
+            </div>
+            <div class="metric">
+              <span class="label">Profit</span>
+              <span class="value" id="dashboard-profit">₹80L <span class="trend-up">▲</span></span>
+            </div>
+          </div>
+          <div class="chart-container">
+            <canvas id="financeChart"></canvas>
+          </div>
+        </div>
+        <!-- Production Card -->
+        <div class="card" id="production-card">
+          <h2>Production</h2>
+          <div class="metrics">
+            <div class="metric">
+              <span class="label">Output</span>
+              <span class="value" id="dashboard-output">135 tons</span>
+            </div>
+            <div class="metric">
+              <span class="label">Efficiency</span>
+              <span class="value" id="dashboard-efficiency">85% <span class="trend-up">▲</span></span>
+            </div>
+            <div class="metric">
+              <span class="label">Quality</span>
+              <span class="value" id="dashboard-quality">98% <span class="trend-up">▲</span></span>
+            </div>
+          </div>
+          <div class="chart-container">
+            <canvas id="productionChart"></canvas>
+          </div>
+        </div>
+        <!-- Delivery Card -->
+        <div class="card" id="delivery-card">
+          <h2>Delivery</h2>
+          <div class="metrics">
+            <div class="metric">
+              <span class="label">On-time</span>
+              <span class="value" id="dashboard-ontime">95% <span class="trend-up">▲</span></span>
+            </div>
+            <div class="metric">
+              <span class="label">Delayed</span>
+              <span class="value" id="dashboard-delayed">5%</span>
+            </div>
+            <div class="metric">
+              <span class="label">Locations</span>
+              <span class="value" id="dashboard-locations">12 <span class="trend-up">▲</span></span>
+            </div>
+          </div>
+          <div>
+            <span style="font-weight:600; color:#24344d;">Delivery Locations</span>
+            <div class="delivery-map" id="deliveryMap"></div>
+          </div>
+        </div>
+        <!-- Inventory Card -->
+        <div class="card" id="inventory-card">
+          <h2>Inventory</h2>
+          <div class="metrics">
+            <div class="metric">
+              <span class="label">Raw Materials</span>
+              <span class="value" id="dashboard-raw">1.2 tons</span>
+            </div>
+            <div class="metric">
+              <span class="label">Finished Goods</span>
+              <span class="value" id="dashboard-finished">3.5 tons</span>
+            </div>
+            <div class="metric">
+              <span class="label">Stock Value</span>
+              <span class="value" id="dashboard-stock">₹5.6L <span class="trend-up">▲</span></span>
+            </div>
+          </div>
+          <div class="inventory-breakdown">
+            <div>
+              <canvas id="inventoryPie" width="120" height="120"></canvas>
+            </div>
+            <div class="inventory-legend">
+              <span><span class="legend-dot" style="background:#4fd1c5"></span> Raw Materials</span>
+              <span><span class="legend-dot" style="background:#3182ce"></span> Finished Goods</span>
+              <span><span class="legend-dot" style="background:#f6ad55"></span> Packaging</span>
+              <span><span class="legend-dot" style="background:#e53e3e"></span> Waste</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Extra Karnataka Metrics -->
+      <div class="card" style="margin-top:24px;">
+        <h2>Karnataka Regional Insights</h2>
+        <div class="extra-metrics" id="extraMetrics">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+      <!-- Recent Activity Table -->
+      <div class="card" style="margin-top:24px;">
+        <h2>Recent Activity</h2>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Event</th>
+                <th>Details</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="activityTable">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <!-- Finance Page -->
+    <div class="page" id="finance">
+      <div class="card">
+        <h2>Finance Overview</h2>
+        <div class="metrics">
+          <div class="metric">
+            <span class="label">Revenue</span>
+            <span class="value" id="fin-revenue">$2.4M</span>
+          </div>
+          <div class="metric">
+            <span class="label">Expenses</span>
+            <span class="value" id="fin-expenses">$1.6M</span>
+          </div>
+          <div class="metric">
+            <span class="label">Profit</span>
+            <span class="value" id="fin-profit">$800K</span>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="financePageChart"></canvas>
+        </div>
+        <button class="btn" onclick="openModal('addFinance')">Add Transaction</button>
+      </div>
+      <div class="card" style="margin-top:24px;">
+        <h2>Transactions</h2>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody id="financeTable">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <!-- Production Page -->
+    <div class="page" id="production">
+      <div class="card">
+        <h2>Production Metrics</h2>
+        <div class="metrics">
+          <div class="metric">
+            <span class="label">Output</span>
+            <span class="value" id="prod-output">135 tons</span>
+          </div>
+          <div class="metric">
+            <span class="label">Efficiency</span>
+            <span class="value" id="prod-efficiency">85%</span>
+          </div>
+          <div class="metric">
+            <span class="label">Quality</span>
+            <span class="value" id="prod-quality">98%</span>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="productionPageChart"></canvas>
+        </div>
+        <button class="btn" onclick="openModal('addProduction')">Add Production Log</button>
+      </div>
+      <div class="card" style="margin-top:24px;">
+        <h2>Production Logs</h2>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Batch</th>
+                <th>Output (tons)</th>
+                <th>Quality (%)</th>
+                <th>Operator</th>
+              </tr>
+            </thead>
+            <tbody id="productionTable">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <!-- Logistics Page -->
+    <div class="page" id="logistics">
+      <div class="card">
+        <h2>Logistics Overview</h2>
+        <div class="metrics">
+          <div class="metric">
+            <span class="label">Active Routes</span>
+            <span class="value" id="log-routes">8</span>
+          </div>
+          <div class="metric">
+            <span class="label">Fleet Size</span>
+            <span class="value" id="log-fleet">15</span>
+          </div>
+          <div class="metric">
+            <span class="label">Avg. Delivery Time</span>
+            <span class="value" id="log-delivery">3.2h</span>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="logisticsChart"></canvas>
+        </div>
+        <button class="btn" onclick="openModal('addLogistics')">Add Route</button>
+      </div>
+      <div class="card" style="margin-top:24px;">
+        <h2>Fleet Status</h2>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Vehicle</th>
+                <th>Status</th>
+                <th>Driver</th>
+                <th>Last Location</th>
+              </tr>
+            </thead>
+            <tbody id="fleetTable">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <!-- Sales Page -->
+    <div class="page" id="sales">
+      <div class="card">
+        <h2>Sales Overview</h2>
+        <div class="metrics">
+          <div class="metric">
+            <span class="label">Orders</span>
+            <span class="value" id="sales-orders">320</span>
+          </div>
+          <div class="metric">
+            <span class="label">Clients</span>
+            <span class="value" id="sales-clients">42</span>
+          </div>
+          <div class="metric">
+            <span class="label">Revenue</span>
+            <span class="value" id="sales-revenue">$2.4M</span>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="salesChart"></canvas>
+        </div>
+        <button class="btn" onclick="openModal('addSales')">Add Order</button>
+      </div>
+      <div class="card" style="margin-top:24px;">
+        <h2>Recent Orders</h2>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Client</th>
+                <th>Product</th>
+                <th>Amount</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="salesTable">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <!-- Inventory Page -->
+    <div class="page" id="inventory">
+      <div class="card">
+        <h2>Inventory Overview</h2>
+        <div class="metrics">
+          <div class="metric">
+            <span class="label">Raw Materials</span>
+            <span class="value" id="inv-raw">1.2 tons</span>
+          </div>
+          <div class="metric">
+            <span class="label">Finished Goods</span>
+            <span class="value" id="inv-finished">3.5 tons</span>
+          </div>
+          <div class="metric">
+            <span class="label">Stock Value</span>
+            <span class="value" id="inv-value">$5.6k</span>
+          </div>
+        </div>
+        <div class="inventory-breakdown">
+          <div>
+            <canvas id="inventoryPagePie" width="120" height="120"></canvas>
+          </div>
+          <div class="inventory-legend">
+            <span><span class="legend-dot" style="background:#4fd1c5"></span> Raw Materials</span>
+            <span><span class="legend-dot" style="background:#3182ce"></span> Finished Goods</span>
+            <span><span class="legend-dot" style="background:#f6ad55"></span> Packaging</span>
+            <span><span class="legend-dot" style="background:#e53e3e"></span> Waste</span>
+          </div>
+        </div>
+        <button class="btn" onclick="openModal('addInventory')">Add Inventory</button>
+      </div>
+      <div class="card" style="margin-top:24px;">
+        <h2>Inventory Logs</h2>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Operator</th>
+              </tr>
+            </thead>
+            <tbody id="inventoryTable">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <!-- Delivery Page -->
+    <div class="page" id="delivery">
+      <div class="card">
+        <h2>Delivery Metrics</h2>
+        <div class="metrics">
+          <div class="metric">
+            <span class="label">On-time</span>
+            <span class="value" id="del-on-time">95%</span>
+          </div>
+          <div class="metric">
+            <span class="label">Delayed</span>
+            <span class="value" id="del-delayed">5%</span>
+          </div>
+          <div class="metric">
+            <span class="label">Locations</span>
+            <span class="value" id="del-locations">12</span>
+          </div>
+        </div>
+        <div>
+          <span style="font-weight:600; color:#24344d;">Delivery Locations</span>
+          <div class="delivery-map" id="deliveryPageMap"></div>
+        </div>
+        <button class="btn" onclick="openModal('addDelivery')">Add Delivery</button>
+      </div>
+      <div class="card" style="margin-top:24px;">
+        <h2>Delivery Logs</h2>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Location</th>
+                <th>Status</th>
+                <th>Driver</th>
+              </tr>
+            </thead>
+            <tbody id="deliveryTable">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <!-- Settings Page -->
+    <div class="page" id="settings">
+      <div class="card">
+        <h2>Settings</h2>
+        <form id="settingsForm">
+          <label for="companyName">Company Name</label>
+          <input type="text" id="companyName" value="CattleFeedPro Ltd.">
+          <label for="userName">User Name</label>
+          <input type="text" id="userName" value="Alex">
+          <label for="theme">Theme</label>
+          <select id="theme">
+            <option value="light" selected>Light</option>
+            <option value="dark">Dark</option>
+          </select>
+          <button class="btn" type="submit">Save Settings</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <!-- Modals -->
+  <div class="modal-bg" id="modal-bg">
+    <div class="modal" id="modal-content">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+  <!-- Notification -->
+  <div class="notification" id="notification"></div>
+  <!-- JavaScript -->
+  <script>
+    // --- Karnataka/Hassan Taluk Data ---
+    const taluks = [
+      { name: "Arsikere", weather: "Rainy", feedQuality: 91, health: "Good", satisfaction: 4.6, carbon: 1.2 },
+      { name: "Alur", weather: "Sunny", feedQuality: 93, health: "Excellent", satisfaction: 4.8, carbon: 1.1 },
+      { name: "Belur", weather: "Cloudy", feedQuality: 89, health: "Good", satisfaction: 4.5, carbon: 1.3 },
+      { name: "Channarayapatna", weather: "Sunny", feedQuality: 92, health: "Good", satisfaction: 4.7, carbon: 1.0 },
+      { name: "Holenarasipura", weather: "Rainy", feedQuality: 90, health: "Average", satisfaction: 4.3, carbon: 1.4 },
+      { name: "Sakleshpur", weather: "Foggy", feedQuality: 94, health: "Excellent", satisfaction: 4.9, carbon: 1.0 },
+      { name: "Hassan City", weather: "Sunny", feedQuality: 95, health: "Excellent", satisfaction: 4.8, carbon: 0.9 }
+    ];
+    // --- Dummy Data (Expanded for Karnataka) ---
+    const activityData = [
+      {date: '2025-09-17', event: 'Order Shipped', details: 'Order #2023 to Sakleshpur Dairy', status: 'Success'},
+      {date: '2025-09-16', event: 'Production Batch', details: 'Batch #HSN-204 completed at Belur Plant', status: 'Success'},
+      {date: '2025-09-16', event: 'Weather Alert', details: 'Heavy rain in Arsikere, delivery delayed', status: 'Warning'},
+      {date: '2025-09-15', event: 'Cattle Health', details: 'Routine vaccination in Alur', status: 'Info'},
+      {date: '2025-09-14', event: 'New Client', details: 'Holenarasipura Milk Union registered', status: 'Success'},
+      {date: '2025-09-13', event: 'Expense Logged', details: 'Maintenance cost ₹1,50,000', status: 'Info'},
+      {date: '2025-09-12', event: 'Order Cancelled', details: 'Order #2019 cancelled', status: 'Error'},
+      // Add more dummy rows for a "massive" feel
+      ...Array.from({length: 50}, (_,i) => ({
+        date: `2025-09-${11-i}`,
+        event: ['Order Shipped','Production Batch','Weather Alert','Cattle Health','Expense Logged','Order Cancelled'][i%6],
+        details: `Dummy event ${i+1} for ${taluks[i%taluks.length].name}`,
+        status: ['Success','Success','Warning','Info','Info','Error'][i%6]
+      }))
+    ];
+    const financeData = [
+      {date: '2025-09-17', type: 'Revenue', amount: 1200000, desc: 'Order #2023 payment (Sakleshpur)'},
+      {date: '2025-09-16', type: 'Expense', amount: 200000, desc: 'Machine maintenance (Belur)'},
+      {date: '2025-09-15', type: 'Revenue', amount: 800000, desc: 'Order #2022 payment (Alur)'},
+      {date: '2025-09-14', type: 'Expense', amount: 150000, desc: 'Raw material purchase (Arsikere)'},
+      {date: '2025-09-13', type: 'Revenue', amount: 950000, desc: 'Order #2021 payment (Hassan City)'},
+      {date: '2025-09-12', type: 'Expense', amount: 120000, desc: 'Packaging supplies (Channarayapatna)'},
+      // Add more dummy rows
+      ...Array.from({length: 50}, (_,i) => ({
+        date: `2025-09-${11-i}`,
+        type: i%2===0?'Revenue':'Expense',
+        amount: 100000 + (i*5000),
+        desc: `Dummy transaction ${i+1} (${taluks[i%taluks.length].name})`
+      }))
+    ];
+    const productionLogs = [
+      {date: '2025-09-17', batch: 'HSN-204', output: 45, quality: 98, operator: 'Ramesh'},
+      {date: '2025-09-16', batch: 'HSN-203', output: 40, quality: 97, operator: 'Suma'},
+      {date: '2025-09-15', batch: 'HSN-202', output: 50, quality: 99, operator: 'Manju'},
+      {date: '2025-09-14', batch: 'HSN-201', output: 38, quality: 96, operator: 'Lakshmi'},
+      // Add more dummy rows
+      ...Array.from({length: 50}, (_,i) => ({
+        date: `2025-09-${13-i}`,
+        batch: `HSN-${200-i}`,
+        output: 35 + (i%10),
+        quality: 90 + (i%10),
+        operator: ['Ramesh','Suma','Manju','Lakshmi','Anil','Radha'][i%6]
+      }))
+    ];
+    const fleetData = [
+      {vehicle: 'KA-13-A-1001', status: 'Active', driver: 'Mahesh', location: 'Hassan City'},
+      {vehicle: 'KA-13-B-2002', status: 'In Transit', driver: 'Suresh', location: 'Sakleshpur'},
+      {vehicle: 'KA-13-C-3003', status: 'Maintenance', driver: 'N/A', location: 'Depot'},
+      {vehicle: 'KA-13-D-4004', status: 'Active', driver: 'Ravi', location: 'Belur'},
+      {vehicle: 'KA-13-E-5005', status: 'In Transit', driver: 'Anil', location: 'Arsikere'},
+      // Add more dummy rows
+      ...Array.from({length: 30}, (_,i) => ({
+        vehicle: `KA-13-X-${6000+i}`,
+        status: ['Active','In Transit','Maintenance'][i%3],
+        driver: ['Mahesh','Suresh','Ravi','Anil','Lakshmi','Radha'][i%6],
+        location: taluks[i%taluks.length].name
+      }))
+    ];
+    const salesOrders = [
+      {date: '2025-09-17', client: 'Sakleshpur Dairy', product: 'Premium Feed', amount: 120000, status: 'Shipped'},
+      {date: '2025-09-16', client: 'Alur Milk Union', product: 'Standard Feed', amount: 80000, status: 'Processing'},
+      {date: '2025-09-15', client: 'Belur Cattle Farms', product: 'Premium Feed', amount: 95000, status: 'Delivered'},
+      {date: '2025-09-14', client: 'Arsikere Agro', product: 'Starter Feed', amount: 70000, status: 'Shipped'},
+      // Add more dummy rows
+      ...Array.from({length: 50}, (_,i) => ({
+        date: `2025-09-${13-i}`,
+        client: `${taluks[i%taluks.length].name} Dairy`,
+        product: ['Premium Feed','Standard Feed','Starter Feed'][i%3],
+        amount: 70000 + (i*1000),
+        status: ['Delivered','Shipped','Processing','Cancelled'][i%4]
+      }))
+    ];
+    const inventoryLogs = [
+      {date: '2025-09-17', type: 'Raw Materials', amount: '0.5 tons', operator: 'Ramesh'},
+      {date: '2025-09-16', type: 'Finished Goods', amount: '1.2 tons', operator: 'Suma'},
+      {date: '2025-09-15', type: 'Packaging', amount: '0.3 tons', operator: 'Manju'},
+      {date: '2025-09-14', type: 'Waste', amount: '0.1 tons', operator: 'Lakshmi'},
+      // Add more dummy rows
+      ...Array.from({length: 30}, (_,i) => ({
+        date: `2025-09-${13-i}`,
+        type: ['Raw Materials','Finished Goods','Packaging','Waste'][i%4],
+        amount: `${(0.1 + (i%5)*0.2).toFixed(1)} tons`,
+        operator: ['Ramesh','Suma','Manju','Lakshmi','Anil','Radha'][i%6]
+      }))
+    ];
+    const deliveryLogs = [
+      {date: '2025-09-17', location: 'Sakleshpur Dairy', status: 'Delivered', driver: 'Mahesh'},
+      {date: '2025-09-16', location: 'Alur Milk Union', status: 'Delayed', driver: 'Suresh'},
+      {date: '2025-09-15', location: 'Belur Cattle Farms', status: 'Delivered', driver: 'Ravi'},
+      {date: '2025-09-14', location: 'Arsikere Agro', status: 'In Transit', driver: 'Anil'},
+      // Add more dummy rows
+      ...Array.from({length: 30}, (_,i) => ({
+        date: `2025-09-${13-i}`,
+        location: `${taluks[i%taluks.length].name} Dairy`,
+        status: ['Delivered','In Transit','Delayed'][i%3],
+        driver: ['Mahesh','Suresh','Ravi','Anil','Lakshmi','Radha'][i%6]
+      }))
+    ];
+    const deliveryLocations = [
+      {name: 'Sakleshpur Dairy', x: 60, y: 40, info: 'Order #2023, On-time'},
+      {name: 'Alur Milk Union', x: 120, y: 80, info: 'Order #2022, Delayed'},
+      {name: 'Belur Cattle Farms', x: 180, y: 60, info: 'Order #2021, Delivered'},
+      {name: 'Arsikere Agro', x: 240, y: 100, info: 'Order #2020, In Transit'},
+      {name: 'Holenarasipura Milk Union', x: 320, y: 50, info: 'Order #2019, Delivered'},
+      {name: 'Channarayapatna Dairy', x: 400, y: 120, info: 'Order #2018, On-time'},
+      {name: 'Hassan City Dairy', x: 500, y: 80, info: 'Order #2017, Delivered'},
+      // Add more dummy locations for a "massive" map
+      ...Array.from({length: 20}, (_,i) => ({
+        name: `${taluks[i%taluks.length].name} Dairy ${i+1}`,
+        x: 60 + (i*30)%700,
+        y: 40 + (i*15)%120,
+        info: `Order #20${30-i}, ${['On-time','Delayed','Delivered','In Transit'][i%4]}`
+      }))
+    ];
+    // --- Utility Functions ---
+    function formatMoneyINR(val) {
+      if (val >= 1e7) return '₹' + (val/1e7).toFixed(2) + 'Cr';
+      if (val >= 1e5) return '₹' + (val/1e5).toFixed(2) + 'L';
+      if (val >= 1e3) return '₹' + (val/1e3).toFixed(2) + 'k';
+      return '₹' + val;
+    }
+    function showNotification(msg, color='#38b2ac') {
+      const notif = document.getElementById('notification');
+      notif.textContent = msg;
+      notif.style.background = color;
+      notif.classList.add('active');
+      setTimeout(() => notif.classList.remove('active'), 2200);
+    }
+    // --- Navigation ---
+    document.querySelectorAll('.nav-link').forEach(link => {
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        this.classList.add('active');
+        const page = this.getAttribute('data-page');
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(page).classList.add('active');
+        window.scrollTo({top:0, behavior:'smooth'});
+      });
+    });
+    // --- Populate Tables ---
+    function populateActivityTable() {
+      const tbody = document.getElementById('activityTable');
+      tbody.innerHTML = '';
+      activityData.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${row.date}</td>
+          <td>${row.event}</td>
+          <td>${row.details}</td>
+          <td>
+            <span style="color:${
+              row.status==='Success'?'#38b2ac':
+              row.status==='Warning'?'#f6ad55':
+              row.status==='Error'?'#e53e3e':'#3182ce'
+            };font-weight:600;">${row.status}</span>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+    function populateFinanceTable() {
+      const tbody = document.getElementById('financeTable');
+      tbody.innerHTML = '';
+      financeData.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${row.date}</td>
+          <td>${row.type}</td>
+          <td>${formatMoneyINR(row.amount)}</td>
+          <td>${row.desc}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+    function populateProductionTable() {
+      const tbody = document.getElementById('productionTable');
+      tbody.innerHTML = '';
+      productionLogs.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${row.date}</td>
+          <td>${row.batch}</td>
+          <td>${row.output}</td>
+          <td>${row.quality}</td>
+          <td>${row.operator}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+    function populateFleetTable() {
+      const tbody = document.getElementById('fleetTable');
+      tbody.innerHTML = '';
+      fleetData.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${row.vehicle}</td>
+          <td>
+            <span style="color:${
+              row.status==='Active'?'#38b2ac':
+              row.status==='In Transit'?'#3182ce':
+              row.status==='Maintenance'?'#e53e3e':'#7b8794'
+            };font-weight:600;">${row.status}</span>
+          </td>
+          <td>${row.driver}</td>
+          <td>${row.location}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+    function populateSalesTable() {
+      const tbody = document.getElementById('salesTable');
+      tbody.innerHTML = '';
+      salesOrders.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${row.date}</td>
+          <td>${row.client}</td>
+          <td>${row.product}</td>
+          <td>${formatMoneyINR(row.amount)}</td>
+          <td>
+            <span style="color:${
+              row.status==='Delivered'?'#38b2ac':
+              row.status==='Shipped'?'#3182ce':
+              row.status==='Processing'?'#f6ad55':'#e53e3e'
+            };font-weight:600;">${row.status}</span>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+    function populateInventoryTable() {
+      const tbody = document.getElementById('inventoryTable');
+      tbody.innerHTML = '';
+      inventoryLogs.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${row.date}</td>
+          <td>${row.type}</td>
+          <td>${row.amount}</td>
+          <td>${row.operator}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+    function populateDeliveryTable() {
+      const tbody = document.getElementById('deliveryTable');
+      tbody.innerHTML = '';
+      deliveryLogs.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${row.date}</td>
+          <td>${row.location}</td>
+          <td>
+            <span style="color:${
+              row.status==='Delivered'?'#38b2ac':
+              row.status==='In Transit'?'#3182ce':
+              row.status==='Delayed'?'#e53e3e':'#7b8794'
+            };font-weight:600;">${row.status}</span>
+          </td>
+          <td>${row.driver}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+    // --- Delivery Map Markers ---
+    function renderDeliveryMap(mapId) {
+      const map = document.getElementById(mapId);
+      map.innerHTML = '';
+      // Map size: 800x160 (background image)
+      deliveryLocations.forEach(loc => {
+        const marker = document.createElement('div');
+        marker.className = 'delivery-marker';
+        marker.style.left = (loc.x/800*100) + '%';
+        marker.style.top = (loc.y/160*100) + '%';
+        marker.title = loc.name;
+        marker.dataset.info = loc.info;
+        marker.addEventListener('mouseenter', function(e) {
+          showDeliveryTooltip(map, loc.name, loc.info, marker);
+        });
+        marker.addEventListener('mouseleave', function(e) {
+          hideDeliveryTooltip(map);
+        });
+        map.appendChild(marker);
+      });
+    }
+    function showDeliveryTooltip(map, name, info, marker) {
+      let tooltip = map.querySelector('.delivery-tooltip');
+      if (!tooltip) {
+        tooltip = document.createElement('div');
+        tooltip.className = 'delivery-tooltip';
+        map.appendChild(tooltip);
+      }
+      tooltip.innerHTML = `<b>${name}</b><br>${info}`;
+      tooltip.style.opacity = 1;
+      // Position tooltip near marker
+      tooltip.style.left = (marker.offsetLeft + 20) + 'px';
+      tooltip.style.top = (marker.offsetTop - 10) + 'px';
+    }
+    function hideDeliveryTooltip(map) {
+      const tooltip = map.querySelector('.delivery-tooltip');
+      if (tooltip) tooltip.style.opacity = 0;
+    }
+    // --- Charts ---
+    let financeChart, productionChart, inventoryPie, productionPageChart, financePageChart, inventoryPagePie, logisticsChart, salesChart;
+    function renderCharts() {
+      // Finance Chart (Dashboard)
+      const ctx1 = document.getElementById('financeChart').getContext('2d');
+      financeChart = new Chart(ctx1, {
+        type: 'line',
+        data: {
+          labels: ['Jan', 'Feb', 'Mar'],
+          datasets: [
+            {
+              label: 'Revenue',
+              data: [2.1, 2.3, 2.4],
+              borderColor: '#4fd1c5',
+              backgroundColor: 'rgba(79,209,197,0.08)',
+              fill: true,
+              tension: 0.4,
+              pointRadius: 3,
+            },
+            {
+              label: 'Expenses',
+              data: [1.3, 1.5, 1.6],
+              borderColor: '#3182ce',
+              backgroundColor: 'rgba(49,130,206,0.08)',
+              fill: true,
+              tension: 0.4,
+              pointRadius: 3,
+            }
+          ]
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, ticks: { callback: v => '₹'+v+'Cr' } }
+          }
+        }
+      });
+      // Production Chart (Dashboard)
+      const ctx2 = document.getElementById('productionChart').getContext('2d');
+      productionChart = new Chart(ctx2, {
+        type: 'bar',
+        data: {
+          labels: ['Jan', 'Feb', 'Mar'],
+          datasets: [{
+            label: 'Output',
+            data: [40, 50, 45],
+            backgroundColor: '#4fd1c5',
+            borderRadius: 8,
+            barPercentage: 0.6,
+          }]
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, ticks: { callback: v => v+'t' } }
+          }
+        }
+      });
+      // Inventory Pie (Dashboard)
+      const ctx3 = document.getElementById('inventoryPie').getContext('2d');
+      inventoryPie = new Chart(ctx3, {
+        type: 'doughnut',
+        data: {
+          labels: ['Raw Materials', 'Finished Goods', 'Packaging', 'Waste'],
+          datasets: [{
+            data: [1.2, 3.5, 0.6, 0.2],
+            backgroundColor: ['#4fd1c5', '#3182ce', '#f6ad55', '#e53e3e'],
+            borderWidth: 2,
+          }]
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          cutout: '65%',
+        }
+      });
+      // Finance Page Chart
+      const ctx4 = document.getElementById('financePageChart').getContext('2d');
+      financePageChart = new Chart(ctx4, {
+        type: 'line',
+        data: {
+          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+          datasets: [
+            {
+              label: 'Revenue',
+              data: [1.8,2.0,2.1,2.2,2.3,2.4,2.35,2.38,2.4],
+              borderColor: '#4fd1c5',
+              backgroundColor: 'rgba(79,209,197,0.08)',
+              fill: true,
+              tension: 0.4,
+              pointRadius: 2,
+            },
+            {
+              label: 'Expenses',
+              data: [1.1,1.2,1.3,1.4,1.5,1.6,1.55,1.58,1.6],
+              borderColor: '#3182ce',
+              backgroundColor: 'rgba(49,130,206,0.08)',
+              fill: true,
+              tension: 0.4,
+              pointRadius: 2,
+            }
+          ]
+        },
+        options: {
+          plugins: { legend: { display: true } },
+          scales: {
+            y: { beginAtZero: true, ticks: { callback: v => '₹'+v+'Cr' } }
+          }
+        }
+      });
+      // Production Page Chart
+      const ctx5 = document.getElementById('productionPageChart').getContext('2d');
+      productionPageChart = new Chart(ctx5, {
+        type: 'bar',
+        data: {
+          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+          datasets: [{
+            label: 'Output (tons)',
+            data: [38,40,42,44,45,50,48,47,45],
+            backgroundColor: '#4fd1c5',
+            borderRadius: 8,
+            barPercentage: 0.6,
+          }]
+        },
+        options: {
+          plugins: { legend: { display: true } },
+          scales: {
+            y: { beginAtZero: true, ticks: { callback: v => v+'t' } }
+          }
+        }
+      });
+      // Inventory Page Pie
+      const ctx6 = document.getElementById('inventoryPagePie').getContext('2d');
+      inventoryPagePie = new Chart(ctx6, {
+        type: 'doughnut',
+        data: {
+          labels: ['Raw Materials', 'Finished Goods', 'Packaging', 'Waste'],
+          datasets: [{
+            data: [1.2, 3.5, 0.6, 0.2],
+            backgroundColor: ['#4fd1c5', '#3182ce', '#f6ad55', '#e53e3e'],
+            borderWidth: 2,
+          }]
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          cutout: '65%',
+        }
+      });
+      // Logistics Chart
+      const ctx7 = document.getElementById('logisticsChart').getContext('2d');
+      logisticsChart = new Chart(ctx7, {
+        type: 'line',
+        data: {
+          labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep'],
+          datasets: [{
+            label: 'Avg. Delivery Time (h)',
+            data: [3.5,3.3,3.2,3.4,3.1,3.2,3.3,3.2,3.2],
+            borderColor: '#3182ce',
+            backgroundColor: 'rgba(49,130,206,0.08)',
+            fill: true,
+            tension: 0.4,
+            pointRadius: 2,
+          }]
+        },
+        options: {
+          plugins: { legend: { display: true } },
+          scales: {
+            y: { beginAtZero: true, ticks: { callback: v => v+'h' } }
+          }
+        }
+      });
+      // Sales Chart
+      const ctx8 = document.getElementById('salesChart').getContext('2d');
+      salesChart = new Chart(ctx8, {
+        type: 'bar',
+        data: {
+          labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep'],
+          datasets: [{
+            label: 'Orders',
+            data: [220,250,270,300,320,310,305,315,320],
+            backgroundColor: '#f6ad55',
+            borderRadius: 8,
+            barPercentage: 0.6,
+          }]
+        },
+        options: {
+          plugins: { legend: { display: true } },
+          scales: {
+            y: { beginAtZero: true }
+          }
+        }
+      });
+    }
+    // --- Karnataka Extra Metrics ---
+    function populateExtraMetrics(region) {
+      const container = document.getElementById('extraMetrics');
+      container.innerHTML = '';
+      let talukData = region === 'all' ? taluks : taluks.filter(t => t.name.toLowerCase().replace(/\s/g,'') === region);
+      talukData.forEach(taluk => {
+        container.innerHTML += `
+          <div class="extra-metric">
+            <span class="label">Taluk</span>
+            <span class="value">${taluk.name}</span>
+          </div>
+          <div class="extra-metric">
+            <span class="label">Weather</span>
+            <span class="value">${taluk.weather}</span>
+          </div>
+          <div class="extra-metric">
+            <span class="label">Feed Quality</span>
+            <span class="value">${taluk.feedQuality}%</span>
+          </div>
+          <div class="extra-metric">
+            <span class="label">Cattle Health</span>
+            <span class="value">${taluk.health}</span>
+          </div>
+          <div class="extra-metric">
+            <span class="label">Farmer Satisfaction</span>
+            <span class="value">${taluk.satisfaction}/5</span>
+          </div>
+          <div class="extra-metric">
+            <span class="label">Carbon Footprint</span>
+            <span class="value">${taluk.carbon} tCO₂e</span>
+          </div>
+        `;
+      });
+    }
+    // --- Region Selector Logic ---
+    document.getElementById('regionSelect').addEventListener('change', function() {
+      const region = this.value;
+      populateExtraMetrics(region);
+      showNotification('Region changed to ' + (region==='all'?'All Hassan':region.charAt(0).toUpperCase()+region.slice(1)));
+    });
+    // --- Modal Logic ---
+    function openModal(type) {
+      const modalBg = document.getElementById('modal-bg');
+      const modal = document.getElementById('modal-content');
+      let html = '';
+      if (type === 'addFinance') {
+        html = `
+          <button class="close-btn" onclick="closeModal()">&times;</button>
+          <h3>Add Finance Transaction</h3>
+          <form id="financeForm">
+            <label>Date</label>
+            <input type="date" name="date" required>
+            <label>Type</label>
+            <select name="type">
+              <option value="Revenue">Revenue</option>
+              <option value="Expense">Expense</option>
+            </select>
+            <label>Amount</label>
+            <input type="number" name="amount" min="1" required>
+            <label>Description</label>
+            <input type="text" name="desc" required>
+            <button class="btn" type="submit">Add</button>
+          </form>
+        `;
+      }
+      if (type === 'addProduction') {
+        html = `
+          <button class="close-btn" onclick="closeModal()">&times;</button>
+          <h3>Add Production Log</h3>
+          <form id="productionForm">
+            <label>Date</label>
+            <input type="date" name="date" required>
+            <label>Batch</label>
+            <input type="text" name="batch" required>
+            <label>Output (tons)</label>
+            <input type="number" name="output" min="1" required>
+            <label>Quality (%)</label>
+            <input type="number" name="quality" min="0" max="100" required>
+            <label>Operator</label>
+            <input type="text" name="operator" required>
+            <button class="btn" type="submit">Add</button>
+          </form>
+        `;
+      }
+      if (type === 'addLogistics') {
+        html = `
+          <button class="close-btn" onclick="closeModal()">&times;</button>
+          <h3>Add Logistics Route</h3>
+          <form id="logisticsForm">
+            <label>Date</label>
+            <input type="date" name="date" required>
+            <label>Route</label>
+            <input type="text" name="route" required>
+            <label>Status</label>
+            <select name="status">
+              <option value="Active">Active</option>
+              <option value="In Transit">In Transit</option>
+              <option value="Maintenance">Maintenance</option>
+            </select>
+            <label>Driver</label>
+            <input type="text" name="driver" required>
+            <label>Last Location</label>
+            <input type="text" name="lastLoc" required>
+            <button class="btn" type="submit">Add</button>
+          </form>
+        `;
+      }
+      if (type === 'addSales') {
+        html = `
+          <button class="close-btn" onclick="closeModal()">&times;</button>
+          <h3>Add Sales Order</h3>
+          <form id="salesForm">
+            <label>Date</label>
+            <input type="date" name="date" required>
+            <label>Client</label>
+            <input type="text" name="client" required>
+            <label>Product</label>
+            <input type="text" name="product" required>
+            <label>Amount</label>
+            <input type="number" name="amount" min="1" required>
+            <label>Status</label>
+            <select name="status">
+              <option value="Processing">Processing</option>
+              <option value="Shipped">Shipped</option>
+              <option value="Delivered">Delivered</option>
+              <option value="Cancelled">Cancelled</option>
+            </select>
+            <button class="btn" type="submit">Add</button>
+          </form>
+        `;
+      }
+      if (type === 'addInventory') {
+        html = `
+          <button class="close-btn" onclick="closeModal()">&times;</button>
+          <h3>Add Inventory Log</h3>
+          <form id="inventoryForm">
+            <label>Date</label>
+            <input type="date" name="date" required>
+            <label>Type</label>
+            <select name="type">
+              <option value="Raw Materials">Raw Materials</option>
+              <option value="Finished Goods">Finished Goods</option>
+              <option value="Packaging">Packaging</option>
+              <option value="Waste">Waste</option>
+            </select>
+            <label>Amount</label>
+            <input type="text" name="amount" required>
+            <label>Operator</label>
+            <input type="text" name="operator" required>
+            <button class="btn" type="submit">Add</button>
+          </form>
+        `;
+      }
+      if (type === 'addDelivery') {
+        html = `
+          <button class="close-btn" onclick="closeModal()">&times;</button>
+          <h3>Add Delivery Log</h3>
+          <form id="deliveryForm">
+            <label>Date</label>
+            <input type="date" name="date" required>
+            <label>Location</label>
+            <input type="text" name="location" required>
+            <label>Status</label>
+            <select name="status">
+              <option value="Delivered">Delivered</option>
+              <option value="In Transit">In Transit</option>
+              <option value="Delayed">Delayed</option>
+            </select>
+            <label>Driver</label>
+            <input type="text" name="driver" required>
+            <button class="btn" type="submit">Add</button>
+          </form>
+        `;
+      }
+      modal.innerHTML = html;
+      modalBg.classList.add('active');
+      // Attach form handlers
+      if (type === 'addFinance') {
+        document.getElementById('financeForm').onsubmit = function(e) {
+          e.preventDefault();
+          const f = e.target;
+          financeData.unshift({
+            date: f.date.value,
+            type: f.type.value,
+            amount: Number(f.amount.value),
+            desc: f.desc.value
+          });
+          populateFinanceTable();
+          closeModal();
+          showNotification('Finance transaction added!');
+        };
+      }
+      if (type === 'addProduction') {
+        document.getElementById('productionForm').onsubmit = function(e) {
+          e.preventDefault();
+          const f = e.target;
+          productionLogs.unshift({
+            date: f.date.value,
+            batch: f.batch.value,
+            output: Number(f.output.value),
+            quality: Number(f.quality.value),
+            operator: f.operator.value
+          });
+          populateProductionTable();
+          closeModal();
+          showNotification('Production log added!');
+        };
+      }
+      if (type === 'addLogistics') {
+        document.getElementById('logisticsForm').onsubmit = function(e) {
+          e.preventDefault();
+          const f = e.target;
+          fleetData.unshift({
+            vehicle: f.route.value,
+            status: f.status.value,
+            driver: f.driver.value,
+            location: f.lastLoc.value
+          });
+          populateFleetTable();
+          closeModal();
+          showNotification('Logistics route added!');
+        };
+      }
+      if (type === 'addSales') {
+        document.getElementById('salesForm').onsubmit = function(e) {
+          e.preventDefault();
+          const f = e.target;
+          salesOrders.unshift({
+            date: f.date.value,
+            client: f.client.value,
+            product: f.product.value,
+            amount: Number(f.amount.value),
+            status: f.status.value
+          });
+          populateSalesTable();
+          closeModal();
+          showNotification('Sales order added!');
+        };
+      }
+      if (type === 'addInventory') {
+        document.getElementById('inventoryForm').onsubmit = function(e) {
+          e.preventDefault();
+          const f = e.target;
+          inventoryLogs.unshift({
+            date: f.date.value,
+            type: f.type.value,
+            amount: f.amount.value,
+            operator: f.operator.value
+          });
+          populateInventoryTable();
+          closeModal();
+          showNotification('Inventory log added!');
+        };
+      }
+      if (type === 'addDelivery') {
+        document.getElementById('deliveryForm').onsubmit = function(e) {
+          e.preventDefault();
+          const f = e.target;
+          deliveryLogs.unshift({
+            date: f.date.value,
+            location: f.location.value,
+            status: f.status.value,
+            driver: f.driver.value
+          });
+          populateDeliveryTable();
+          closeModal();
+          showNotification('Delivery log added!');
+        };
+      }
+    }
+    function closeModal() {
+      document.getElementById('modal-bg').classList.remove('active');
+    }
+    document.getElementById('modal-bg').addEventListener('click', function(e) {
+      if (e.target === this) closeModal();
+    });
+    // --- Settings Form ---
+    document.getElementById('settingsForm').onsubmit = function(e) {
+      e.preventDefault();
+      const company = document.getElementById('companyName').value;
+      const user = document.getElementById('userName').value;
+      document.querySelector('.logo').innerHTML = `<i>🐄</i> ${company}`;
+      document.querySelector('.user span').textContent = `Hi, ${user}`;
+      showNotification('Settings saved!');
+    };
+    document.getElementById('theme').addEventListener('change', function() {
+      if (this.value === 'dark') {
+        document.body.style.background = '#1a2636';
+        document.body.style.color = '#fff';
+        document.querySelectorAll('.card').forEach(card => card.style.background = '#24344d');
+        document.querySelectorAll('.card').forEach(card => card.style.color = '#fff');
+        document.querySelector('.navbar').style.background = '#24344d';
+      } else {
+        document.body.style.background = '#f6f8fa';
+        document.body.style.color = '#222';
+        document.querySelectorAll('.card').forEach(card => card.style.background = '#fff');
+        document.querySelectorAll('.card').forEach(card => card.style.color = '#222');
+        document.querySelector('.navbar').style.background = '#1a2636';
+      }
+    });
+    // --- Initial Render ---
+    window.onload = function() {
+      populateActivityTable();
+      populateFinanceTable();
+      populateProductionTable();
+      populateFleetTable();
+      populateSalesTable();
+      populateInventoryTable();
+      populateDeliveryTable();
+      renderDeliveryMap('deliveryMap');
+      renderDeliveryMap('deliveryPageMap');
+      renderCharts();
+      populateExtraMetrics('all');
+    };
+  </script>
+</body>
+</html>
